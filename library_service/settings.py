@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "book_service",
     "user_service",
     "borrow_service",
+    "notifications_service",
     "rest_framework",
     "rest_framework_simplejwt",
 ]
