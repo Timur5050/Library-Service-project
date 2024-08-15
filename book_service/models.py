@@ -3,7 +3,7 @@ from django.db import models
 
 class Book(models.Model):
     class Cover(models.TextChoices):
-        HARD = ("HARD",)
+        HARD = "HARD"
         SOFT = "SOFT"
 
     title = models.CharField(max_length=100)
