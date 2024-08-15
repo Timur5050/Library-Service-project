@@ -1,6 +1,9 @@
 from django.urls import path
 
-from borrow_service.views import BorrowListView, BorrowRetrieveView
+from borrow_service.views import (
+    BorrowListView,
+    BorrowRetrieveView,
+)
 
 urlpatterns = [
     path("borrows/", BorrowListView.as_view(), name="borrows"),
