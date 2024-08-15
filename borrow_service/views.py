@@ -111,4 +111,7 @@ def return_borrowed_book(request: Request, borrow_id: int) -> Response:
     borrow.actual_return_date = datetime.date.today()
     borrow.save()
     serializer = BorrowRetrieveSerializer(borrow)
+    send_message_to_telegram_group(
+        f"{request.user.email}\nhas returned book: `{book.title}`\nexpected return date is : {borrow.expected_return_date}\nactual return date is : {borrow.actual_return_date}"
+    )
     return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
