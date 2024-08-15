@@ -1,7 +1,12 @@
+import datetime
+
 from django.http import Http404
-from rest_framework import mixins
-from rest_framework.generics import GenericAPIView, RetrieveAPIView
+from rest_framework import mixins, status
+from rest_framework.decorators import api_view
+from rest_framework.generics import GenericAPIView, RetrieveAPIView, get_object_or_404
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.request import Request
+from rest_framework.response import Response
 
 from book_service.models import Book
 from borrow_service.models import Borrow
@@ -71,3 +76,18 @@ class BorrowRetrieveView(
 
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
+
+
+@api_view(["GET", "POST"])
+def return_borrowed_book(request: Request, borrow_id: int) -> Response:
+    borrow = get_object_or_404(Borrow, id=borrow_id)
+    if borrow.user != request.user:
+        raise Http404("You do not have such borrow")
+
+    book = borrow.book
+    book.inventory += 1
+    book.save()
+    borrow.actual_return_date = datetime.date.today()
+    borrow.save()
+    serializer = BorrowRetrieveSerializer(borrow)
+    return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
