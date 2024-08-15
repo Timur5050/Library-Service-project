@@ -10,3 +10,5 @@ router.register("books", BookViewSet)
 urlpatterns = [
     path("", include(router.urls)),
 ]
+
+app_name = "book_service"
