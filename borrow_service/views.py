@@ -2,7 +2,7 @@ import datetime
 
 from django.http import Http404
 from rest_framework import mixins, status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import GenericAPIView, get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
@@ -70,6 +70,7 @@ class BorrowRetrieveView(
     GenericAPIView
 ):
     serializer_class = BorrowRetrieveSerializer
+    permission_classes = (IsAuthenticated,)
 
     def get_object(self):
         return Borrow.objects.filter(user=self.request.user).get(id=self.kwargs["pk"])
@@ -79,6 +80,7 @@ class BorrowRetrieveView(
 
 
 @api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
 def return_borrowed_book(request: Request, borrow_id: int) -> Response:
     borrow = get_object_or_404(Borrow, id=borrow_id)
     if borrow.user != request.user:
