@@ -1,5 +1,7 @@
 import datetime
 
+import requests
+from django.conf import settings
 from django.http import Http404
 from rest_framework import mixins, status
 from rest_framework.decorators import api_view, permission_classes
@@ -14,6 +16,20 @@ from borrow_service.serializers import (
     BorrowListSerializer,
     BorrowRetrieveSerializer, BorrowCreateSerializer
 )
+
+
+def send_message_to_telegram_group(message: str):
+    bot_token = settings.TELEGRAM_BOT_TOKEN
+    chat_id = settings.TELEGRAM_CHAT_ID
+    message = message
+
+    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+
+    payload = {
+        "chat_id": chat_id,
+        "text": message
+    }
+    return requests.post(url, data=payload)
 
 
 class BorrowListView(
@@ -60,6 +76,9 @@ class BorrowListView(
         if book.inventory > 0:
             book.inventory -= 1
             book.save()
+            send_message_to_telegram_group(
+                f"{request.user.email}\nhas borrowed book: `{book.title}`\ntill {request.data["expected_return_date"]}"
+            )
             return self.create(request, *args, **kwargs)
 
         raise Http404("No such books available")
@@ -92,4 +111,7 @@ def return_borrowed_book(request: Request, borrow_id: int) -> Response:
     borrow.actual_return_date = datetime.date.today()
     borrow.save()
     serializer = BorrowRetrieveSerializer(borrow)
+    send_message_to_telegram_group(
+        f"{request.user.email}\nhas returned book: `{book.title}`\nexpected return date is : {borrow.expected_return_date}\nactual return date is : {borrow.actual_return_date}"
+    )
     return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
