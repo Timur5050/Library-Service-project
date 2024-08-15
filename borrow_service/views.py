@@ -1,6 +1,7 @@
 from django.http import Http404
 from rest_framework import mixins
 from rest_framework.generics import GenericAPIView, RetrieveAPIView
+from rest_framework.permissions import IsAuthenticated
 
 from book_service.models import Book
 from borrow_service.models import Borrow
@@ -17,6 +18,9 @@ class BorrowListView(
 ):
     queryset = Borrow.objects.all()
     serializer = BorrowListSerializer
+    permission_classes = (IsAuthenticated,)
+
+
 
     def get_serializer_class(self):
         serializer = self.serializer
