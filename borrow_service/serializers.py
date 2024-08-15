@@ -33,3 +33,12 @@ class BorrowRetrieveSerializer(serializers.ModelSerializer):
             "book",
             "user"
         )
+
+
+class BorrowCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Borrow
+        fields = ("book", "expected_return_date")
+
+    def create(self, validated_data):
+        return Borrow.objects.create(**validated_data, user=self.context["request"].user)
