@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "book_service",
     "user_service",
+    "borrow_service",
     "rest_framework",
     "rest_framework_simplejwt",
 ]
