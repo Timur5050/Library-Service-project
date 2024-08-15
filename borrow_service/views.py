@@ -1,6 +1,7 @@
 from django.http import Http404
 from rest_framework import mixins
 from rest_framework.generics import GenericAPIView, RetrieveAPIView
+from rest_framework.permissions import IsAuthenticated
 
 from book_service.models import Book
 from borrow_service.models import Borrow
@@ -17,6 +18,27 @@ class BorrowListView(
 ):
     queryset = Borrow.objects.all()
     serializer = BorrowListSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        queryset = Borrow.objects.all()
+        if not self.request.user.is_staff:
+            queryset = queryset.filter(user=self.request.user)
+        else:
+            user_id = self.request.query_params.get("user_id", None)
+            if user_id:
+                queryset = queryset.filter(user_id=user_id)
+
+        is_active = self.request.query_params.get("is_active", None)
+        if is_active is not None:
+            if is_active == "true":
+                queryset = queryset.filter(actual_return_date__isnull=True)
+            elif is_active == "false":
+                queryset = queryset.filter(actual_return_date__isnull=False)
+            else:
+                raise Http404("You can pass only true or false to is_active query parameter")
+
+        return queryset
 
     def get_serializer_class(self):
         serializer = self.serializer

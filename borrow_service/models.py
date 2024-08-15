@@ -12,13 +12,5 @@ class Borrow(models.Model):
     book = models.ForeignKey(Book, on_delete=models.CASCADE)
     user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
 
-    def clean(self):
-        if self.actual_return_date and self.borrow_date > self.actual_return_date:
-            raise ValidationError("You can not return book before you borrow it")
-
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        return super(Borrow, self).save(*args, **kwargs)
-
     def __str__(self):
         return f"{self.borrow_date} - {self.user} - {self.actual_return_date}"
