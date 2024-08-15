@@ -3,7 +3,7 @@ import datetime
 from django.http import Http404
 from rest_framework import mixins, status
 from rest_framework.decorators import api_view
-from rest_framework.generics import GenericAPIView, RetrieveAPIView, get_object_or_404
+from rest_framework.generics import GenericAPIView, get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -72,7 +72,7 @@ class BorrowRetrieveView(
     serializer_class = BorrowRetrieveSerializer
 
     def get_object(self):
-        return Borrow.objects.get(id=self.kwargs["pk"])
+        return Borrow.objects.filter(user=self.request.user).get(id=self.kwargs["pk"])
 
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
