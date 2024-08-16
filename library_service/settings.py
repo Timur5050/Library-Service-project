@@ -152,7 +152,7 @@ TELEGRAM_CHAT_ID = os.environ.get("CHAT_ID")
 CELERY_BEAT_SCHEDULE = {
     "sample_task": {
         "task": "notifications_service.views.daily_list_of_borrowers",
-        "schedule": crontab(minute="0", hour="21:00")
+        "schedule": crontab(minute="0", hour="21")
     },
 }
 
