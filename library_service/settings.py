@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "user_service",
     "borrow_service",
     "notifications_service",
+    "payments_service",
     "django_celery_beat",
     "rest_framework",
     "rest_framework_simplejwt",
