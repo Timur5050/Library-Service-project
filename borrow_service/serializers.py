@@ -41,4 +41,4 @@ class BorrowCreateSerializer(serializers.ModelSerializer):
         fields = ("book", "expected_return_date")
 
     def create(self, validated_data):
-        return Borrow.objects.create(**validated_data, user=self.context["request"].user)
+        return Borrow.objects.create(**validated_data)

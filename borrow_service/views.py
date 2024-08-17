@@ -1,7 +1,5 @@
 import datetime
 
-import requests
-from django.conf import settings
 from django.http import Http404
 from rest_framework import mixins, status
 from rest_framework.decorators import api_view, permission_classes
@@ -18,6 +16,8 @@ from borrow_service.serializers import (
 )
 
 from notifications_service.views import send_message_to_telegram_group
+from payments_service.models import Payment
+from payments_service.views import create_payment_session
 
 
 class BorrowListView(
@@ -62,12 +62,19 @@ class BorrowListView(
     def post(self, request, *args, **kwargs):
         book = Book.objects.get(pk=request.data["book"])
         if book.inventory > 0:
-            book.inventory -= 1
-            book.save()
-            send_message_to_telegram_group(
-                f"{request.user.email}\nhas borrowed book: `{book.title}`\ntill {request.data["expected_return_date"]}"
+            serializer = BorrowCreateSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.validated_data["user"] = request.user
+            borrow = serializer.save()
+            year, month, day = map(int, request.data["expected_return_date"].split("-"))
+            date = datetime.date(year, month, day)
+            payment = Payment.objects.create(
+                status="PENDING",
+                type="PAYMENT",
+                borrowing=borrow,
+                money_to_pay=(date - datetime.date.today()).days * book.daily_fee
             )
-            return self.create(request, *args, **kwargs)
+            return create_payment_session(payment)
 
         raise Http404("No such books available")
 
