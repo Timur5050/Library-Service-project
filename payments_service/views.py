@@ -4,6 +4,7 @@ import stripe
 from django.conf import settings
 from django.http import Http404
 from django.shortcuts import redirect
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.generics import GenericAPIView
@@ -35,6 +36,10 @@ class PaymentListView(ListModelMixin, GenericAPIView):
 
         return queryset
 
+    @extend_schema(
+        summary="get all your patments",
+        responses={200: BorrowCreateSerializer(many=True)}
+    )
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
 
@@ -52,6 +57,10 @@ class PaymentRetrieveView(RetrieveModelMixin, GenericAPIView):
         except Payment.DoesNotExist:
             raise Http404
 
+    @extend_schema(
+        summary="get one of your payments",
+        responses={200: BorrowCreateSerializer(many=False)}
+    )
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
 
