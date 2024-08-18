@@ -1,3 +1,5 @@
+import datetime
+
 import stripe
 from django.conf import settings
 from django.http import Http404
@@ -13,13 +15,15 @@ from rest_framework.response import Response
 
 from book_service.models import Book
 from borrow_service.models import Borrow
-from borrow_service.serializers import BorrowCreateSerializer
+from borrow_service.serializers import BorrowCreateSerializer, BorrowRetrieveSerializer
 from notifications_service.views import send_message_to_telegram_group
 from payments_service.models import Payment
 from payments_service.serializers import (
     PaymentListSerializer,
     PaymentRetrieveSerializer,
 )
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 class PaymentListView(ListModelMixin, GenericAPIView):
@@ -56,8 +60,6 @@ class PaymentRetrieveView(RetrieveModelMixin, GenericAPIView):
 
 
 def create_payment_session(payment):
-    stripe.api_key = settings.STRIPE_SECRET_KEY
-    print(payment.id)
     session = stripe.checkout.Session.create(
         payment_method_types=["card"],
         line_items=[
@@ -73,8 +75,8 @@ def create_payment_session(payment):
             }
         ],
         mode="payment",
-        success_url=f"http://127.0.0.1:8000/api/v1/success/{payment.id}/",
-        cancel_url="http://127.0.0.1:8000/api/v1/cancel/",
+        success_url=f"http://127.0.0.1:8000/api/v1/success/payment/{payment.id}/",
+        cancel_url=f"http://127.0.0.1:8000/api/v1/cancel/payment/{payment.id}/",
     )
 
     payment.session_url = session.url
@@ -100,10 +102,65 @@ def success_payment_session(request, payment_id: int):
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-def cancel_payment_session(request, borrow_id: int):
-    borrow = Borrow.objects.get(id=borrow_id)
+@api_view(["GET"])
+def cancel_payment_session(request, payment_id: int):
+    payment = Payment.objects.get(pk=payment_id)
+    borrow = Borrow.objects.get(id=payment.borrowing.id)
     borrow.delete()
     return Response(
         {"success": "FAIL. You have 24 hours to pay for that book"},
+        status=status.HTTP_502_BAD_GATEWAY,
+    )
+
+
+def create_fine_session(payment):
+    session = stripe.checkout.Session.create(
+        payment_method_types=["card"],
+        line_items=[
+            {
+                "price_data": {
+                    "currency": "usd",
+                    "product_data": {
+                        "name": "fine for overdue",
+                    },
+                    "unit_amount": int(payment.money_to_pay) * 100,
+                },
+                "quantity": 1,
+            }
+        ],
+        mode="payment",
+        success_url=f"http://127.0.0.1:8000/api/v1/success/fine/{payment.id}/",
+        cancel_url="http://127.0.0.1:8000/api/v1/cancel/fine/",
+    )
+
+    payment.session_url = session.url
+    payment.session_id = session.id
+    payment.save()
+
+    return redirect(session.url)
+
+
+@api_view(["GET"])
+def success_fine_session(request, payment_id: int):
+    payment = Payment.objects.get(pk=payment_id)
+    payment.borrowing.book.inventory += 1
+    payment.borrowing.book.save()
+    payment.borrowing.actual_return_date = datetime.date.today()
+    payment.borrowing.save()
+    payment.status = "PAID"
+    payment.save()
+    send_message_to_telegram_group(
+        f"{request.user.email}\nhas returned book: "
+        f"`{payment.borrowing.book.title}`\nexpected return date is : "
+        f"{payment.borrowing.expected_return_date}\nactual return date is : {payment.borrowing.actual_return_date}"
+    )
+    serializer = BorrowRetrieveSerializer(payment.borrowing)
+    return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+
+
+@api_view(["GET"])
+def cancel_fine_session(request):
+    return Response(
+        {"success": "FAIL. You have 24 hours to pay for fine that borrowing"},
         status=status.HTTP_502_BAD_GATEWAY,
     )

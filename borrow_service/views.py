@@ -1,5 +1,6 @@
 import datetime
 
+from django.conf import settings
 from django.http import Http404
 from rest_framework import mixins, status
 from rest_framework.decorators import api_view, permission_classes
@@ -17,7 +18,7 @@ from borrow_service.serializers import (
 
 from notifications_service.views import send_message_to_telegram_group
 from payments_service.models import Payment
-from payments_service.views import create_payment_session
+from payments_service.views import create_payment_session, create_fine_session
 
 
 class BorrowListView(
@@ -100,10 +101,23 @@ def return_borrowed_book(request: Request, borrow_id: int) -> Response:
     if borrow.user != request.user:
         raise Http404("You do not have such borrow")
 
+    today_date = datetime.date.today()
+
+    if borrow.expected_return_date < today_date:
+        payment = Payment.objects.create(
+            status="PENDING",
+            type="FINE",
+            borrowing=borrow,
+            money_to_pay=
+            settings.FINE_MULTIPLIER * (
+                    today_date - borrow.expected_return_date
+            ).days
+        )
+        return create_fine_session(payment)
     book = borrow.book
     book.inventory += 1
     book.save()
-    borrow.actual_return_date = datetime.date.today()
+    borrow.actual_return_date = today_date
     borrow.save()
     serializer = BorrowRetrieveSerializer(borrow)
     send_message_to_telegram_group(
