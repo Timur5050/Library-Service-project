@@ -3,17 +3,14 @@ import datetime
 import stripe
 from django.conf import settings
 from django.http import Http404
-from django.shortcuts import render, redirect
-from django.urls import reverse
+from django.shortcuts import redirect
 from rest_framework import status
 from rest_framework.decorators import api_view
-from rest_framework.generics import GenericAPIView, get_object_or_404
+from rest_framework.generics import GenericAPIView
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.request import Request
 from rest_framework.response import Response
 
-from book_service.models import Book
 from borrow_service.models import Borrow
 from borrow_service.serializers import BorrowCreateSerializer, BorrowRetrieveSerializer
 from notifications_service.views import send_message_to_telegram_group
