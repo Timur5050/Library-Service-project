@@ -31,7 +31,7 @@ class BorrowListView(
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
-        queryset = Borrow.objects.all()
+        queryset = Borrow.objects.all().select_related("book")
         if not self.request.user.is_staff:
             queryset = queryset.filter(user=self.request.user)
         else:
