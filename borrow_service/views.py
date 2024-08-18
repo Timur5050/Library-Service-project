@@ -2,6 +2,7 @@ import datetime
 
 from django.conf import settings
 from django.http import Http404
+from drf_spectacular.utils import extend_schema_view, extend_schema
 from rest_framework import mixins, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import GenericAPIView, get_object_or_404
@@ -21,6 +22,14 @@ from payments_service.models import Payment
 from payments_service.views import create_payment_session, create_fine_session
 
 
+@extend_schema_view(
+    list=extend_schema(
+        summary="You can see your list of borrows",
+    ),
+    create=extend_schema(
+        summary="You can create a new borrow",
+    ),
+)
 class BorrowListView(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
@@ -31,7 +40,7 @@ class BorrowListView(
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
-        queryset = Borrow.objects.all()
+        queryset = Borrow.objects.all().select_related("book")
         if not self.request.user.is_staff:
             queryset = queryset.filter(user=self.request.user)
         else:
@@ -57,9 +66,17 @@ class BorrowListView(
 
         return serializer
 
+    @extend_schema(
+        summary="list all your borrows",
+        responses={200: BorrowListSerializer(many=True)}
+    )
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
 
+    @extend_schema(
+        summary="create new borrow",
+        responses={200: BorrowCreateSerializer(many=True)}
+    )
     def post(self, request, *args, **kwargs):
         book = Book.objects.get(pk=request.data["book"])
         if book.inventory > 0:
@@ -88,12 +105,23 @@ class BorrowRetrieveView(
     permission_classes = (IsAuthenticated,)
 
     def get_object(self):
-        return Borrow.objects.filter(user=self.request.user).get(id=self.kwargs["pk"])
+        try:
+            return Borrow.objects.filter(user=self.request.user).get(id=self.kwargs["pk"])
+        except Exception:
+            raise Http404
 
+    @extend_schema(
+        summary="retrieve one of your borrows",
+        responses={200: BorrowCreateSerializer(many=True)}
+    )
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
 
 
+@extend_schema(
+    summary="return one of books that you taken",
+    responses={200: BorrowCreateSerializer(many=True)}
+)
 @api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated])
 def return_borrowed_book(request: Request, borrow_id: int) -> Response:
