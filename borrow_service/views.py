@@ -105,7 +105,10 @@ class BorrowRetrieveView(
     permission_classes = (IsAuthenticated,)
 
     def get_object(self):
-        return Borrow.objects.filter(user=self.request.user).get(id=self.kwargs["pk"])
+        try:
+            return Borrow.objects.filter(user=self.request.user).get(id=self.kwargs["pk"])
+        except Exception:
+            raise Http404
 
     @extend_schema(
         summary="retrieve one of your borrows",
