@@ -2,9 +2,10 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APITestCase, APIClient
-from .models import Book
-from .serializers import BookSerializer
+from rest_framework.test import APIClient
+
+from book_service.models import Book
+from book_service.serializers import BookSerializer
 
 books_url = reverse("book_service:book-list")
 

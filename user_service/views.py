@@ -1,9 +1,8 @@
-from drf_spectacular.utils import extend_schema_view, extend_schema
+from drf_spectacular.utils import extend_schema
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView
 
 from user_service.serializers import UserCreateSerializer, UserUpdateSerializer
-
-from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView
 
 
 class CreateUserView(CreateAPIView):

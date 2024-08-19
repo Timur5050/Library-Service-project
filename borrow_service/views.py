@@ -16,7 +16,6 @@ from borrow_service.serializers import (
     BorrowListSerializer,
     BorrowRetrieveSerializer, BorrowCreateSerializer
 )
-
 from notifications_service.views import send_message_to_telegram_group
 from payments_service.models import Payment
 from payments_service.views import create_payment_session, create_fine_session

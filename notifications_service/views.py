@@ -1,10 +1,10 @@
 from datetime import date, timedelta
-
 import requests
+
 from celery import shared_task
 from django.conf import settings
 from django.db.models import Q
-from django.shortcuts import render
+
 from borrow_service.models import Borrow
 
 
