@@ -25,6 +25,9 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 class PaymentListView(ListModelMixin, GenericAPIView):
+    """
+    A view for listing all payment records associated with the authenticated user.
+    """
     queryset = Payment.objects.all()
     serializer_class = PaymentListSerializer
     permission_classes = (IsAuthenticated,)
@@ -45,6 +48,9 @@ class PaymentListView(ListModelMixin, GenericAPIView):
 
 
 class PaymentRetrieveView(RetrieveModelMixin, GenericAPIView):
+    """
+    A view to retrieve a specific payment record associated with the authenticated user.
+    """
     serializer_class = PaymentRetrieveSerializer
     permission_classes = (IsAuthenticated,)
 
@@ -66,6 +72,9 @@ class PaymentRetrieveView(RetrieveModelMixin, GenericAPIView):
 
 
 def create_payment_session(payment):
+    """
+    Creates a Stripe checkout session for a payment and redirects the user to the Stripe payment page.
+    """
     session = stripe.checkout.Session.create(
         payment_method_types=["card"],
         line_items=[
@@ -94,6 +103,10 @@ def create_payment_session(payment):
 
 @api_view(["GET"])
 def success_payment_session(request, payment_id: int):
+    """
+    Handles the success of a Stripe payment session, reduces the inventory of the book,
+    updates the payment status, and notifies the Telegram group.
+    """
     payment = Payment.objects.get(pk=payment_id)
     borrow = payment.borrowing
     book = borrow.book
@@ -110,6 +123,9 @@ def success_payment_session(request, payment_id: int):
 
 @api_view(["GET"])
 def cancel_payment_session(request, payment_id: int):
+    """
+    Handles the cancellation of a Stripe payment session and deletes the associated borrow record.
+    """
     payment = Payment.objects.get(pk=payment_id)
     borrow = Borrow.objects.get(id=payment.borrowing.id)
     borrow.delete()
@@ -120,6 +136,9 @@ def cancel_payment_session(request, payment_id: int):
 
 
 def create_fine_session(payment):
+    """
+    Creates a Stripe checkout session for a fine payment and redirects the user to the Stripe payment page.
+    """
     session = stripe.checkout.Session.create(
         payment_method_types=["card"],
         line_items=[
@@ -148,6 +167,10 @@ def create_fine_session(payment):
 
 @api_view(["GET"])
 def success_fine_session(request, payment_id: int):
+    """
+    Handles the success of a fine payment session, updates the inventory and borrowing records,
+    and notifies the Telegram group about the book return.
+    """
     payment = Payment.objects.get(pk=payment_id)
     payment.borrowing.book.inventory += 1
     payment.borrowing.book.save()
@@ -166,6 +189,9 @@ def success_fine_session(request, payment_id: int):
 
 @api_view(["GET"])
 def cancel_fine_session(request):
+    """
+    Handles the cancellation of a fine payment session.
+    """
     return Response(
         {"success": "FAIL. You have 24 hours to pay for fine that borrowing"},
         status=status.HTTP_502_BAD_GATEWAY,

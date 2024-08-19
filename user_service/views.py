@@ -6,6 +6,9 @@ from user_service.serializers import UserCreateSerializer, UserUpdateSerializer
 
 
 class CreateUserView(CreateAPIView):
+    """
+    A view for creating a new user.
+    """
     serializer_class = UserCreateSerializer
 
     @extend_schema(
@@ -17,6 +20,9 @@ class CreateUserView(CreateAPIView):
 
 
 class UpdateRetrieveUserView(RetrieveUpdateAPIView):
+    """
+    A view for retrieving and updating the authenticated user's profile.
+    """
     serializer_class = UserUpdateSerializer
     permission_classes = (IsAuthenticated,)
 

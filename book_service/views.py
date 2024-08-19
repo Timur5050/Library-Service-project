@@ -27,6 +27,10 @@ from book_service.permissions import ReadOnlyOrAdminPermission
     ),
 )
 class BookViewSet(viewsets.ModelViewSet):
+    """
+       A viewset for viewing and editing book instances.
+       This viewset provides `list`, `retrieve`, `create`, `update`, and `destroy` actions for Book objects.
+       """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
     permission_classes = (ReadOnlyOrAdminPermission,)

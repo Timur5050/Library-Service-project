@@ -34,11 +34,23 @@ class BorrowListView(
     mixins.CreateModelMixin,
     GenericAPIView
 ):
+    """
+        A view for listing and creating borrow instances.
+
+        This view handles two actions:
+            - Listing all the borrow records for the authenticated user.
+            - Creating a new borrow instance for an authenticated user.
+    """
     queryset = Borrow.objects.all()
     serializer = BorrowListSerializer
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
+        """
+        Retrieves the queryset of borrow records. If the user is not an admin,
+        it returns only the records associated with the user. It can be further filtered
+        by the `is_active` query parameter to show active or inactive borrow records.
+        """
         queryset = Borrow.objects.all().select_related("book")
         if not self.request.user.is_staff:
             queryset = queryset.filter(user=self.request.user)
@@ -59,6 +71,10 @@ class BorrowListView(
         return queryset
 
     def get_serializer_class(self):
+        """
+        Returns the serializer class based on the HTTP method.
+        Uses `BorrowListSerializer` for GET requests and `BorrowCreateSerializer` for POST requests.
+        """
         serializer = self.serializer
         if self.request.method == "POST":
             serializer = BorrowCreateSerializer
@@ -100,6 +116,10 @@ class BorrowRetrieveView(
     mixins.RetrieveModelMixin,
     GenericAPIView
 ):
+    """
+    A view to retrieve a single borrow instance for the authenticated user.
+    This view allows an authenticated user to retrieve details of a specific borrow record.
+    """
     serializer_class = BorrowRetrieveSerializer
     permission_classes = (IsAuthenticated,)
 
@@ -124,6 +144,12 @@ class BorrowRetrieveView(
 @api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated])
 def return_borrowed_book(request: Request, borrow_id: int) -> Response:
+    """
+    Handles the return process for a borrowed book.
+    It checks whether the borrow instance belongs to the authenticated user and calculates
+    potential fines if the book is returned late. It updates the borrow record with the actual
+    return date and sends a notification to a Telegram group.
+    """
     borrow = get_object_or_404(Borrow, id=borrow_id)
     if borrow.user != request.user:
         raise Http404("You do not have such borrow")

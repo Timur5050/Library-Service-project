@@ -9,6 +9,9 @@ from borrow_service.models import Borrow
 
 
 def send_message_to_telegram_group(message: str):
+    """
+    Sends a message to a predefined Telegram group using the Telegram Bot API.
+    """
     bot_token = settings.TELEGRAM_BOT_TOKEN
     chat_id = settings.TELEGRAM_CHAT_ID
     message = message
@@ -24,6 +27,11 @@ def send_message_to_telegram_group(message: str):
 
 @shared_task
 def daily_list_of_borrowers():
+    """
+    Sends a daily list of borrowers who have to return their books by tomorrow
+    via a message to a Telegram group. If there are no pending returns, it informs
+    the group that no books are overdue.
+    """
     bot_token = settings.TELEGRAM_BOT_TOKEN
     chat_id = settings.TELEGRAM_CHAT_ID
 
