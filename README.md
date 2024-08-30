@@ -19,6 +19,7 @@ This Library Service project enables users to borrow books for a fee, with addit
 - Stripe
 - Payment system
 - Tests
+- RestAPI
 
 # Run program using GitHub
 To run Celery with both a worker and beat scheduler in separate terminals, you can follow these instructions. This will ensure your Celery tasks are processed and scheduled correctly. Below is a step-by-step guide for setting up and starting the Celery worker and Celery beat scheduler.
