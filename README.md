@@ -61,9 +61,9 @@ run app: python manage.py runserver
 ### You need to have docker
 ```sh
 # Clone the repository
-git clone https://github.com/Timur5050/rick-and-morty.git
+git clone https://github.com/Timur5050/Library-Service-project.git
 # Change to the project directory
-cd rick-and-morty
+cd Library-Service-project
 # Copy sample.env -> .env and populate with all required data 
 # Build and run docker-compose
 docker-compose up --build
