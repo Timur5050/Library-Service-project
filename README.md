@@ -1,7 +1,7 @@
 ﻿# Library-Service-project
 
 
-This Library Service project enables users to borrow books for a fee, with additional charges for late returns. It includes a Telegram bot that automatically sends notifications to a Telegram group whenever books are borrowed or returned, simplifying communication and enhancing library management.
+This Library Service project enables users to borrow books for a fee, with additional charges for late returns. It includes a Telegram bot that automatically sends notifications to a Telegram group whenever books are borrowed or returned, simplifying communication and enhancing library management!
 
 # Features
 - JWT authentication
